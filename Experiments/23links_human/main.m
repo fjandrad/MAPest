@@ -93,7 +93,7 @@ if opts.noC7joints
         end
     end
 else
-    % model NO exo, with C7 joints (complete) REVOLUTE
+    % model NO exo  or EXO in forceLevelAnalysis, with C7 joints (complete) REVOLUTE
     bucket.filenameURDF = fullfile(bucket.pathToSubject, sprintf('XSensURDF_subj%02d_48dof.urdf', subjectID));
     if ~exist(bucket.filenameURDF, 'file')
         bucket.URDFmodel = createXsensLikeURDFmodel(subjectParamsFromData, ...
@@ -101,7 +101,7 @@ else
             'filename',bucket.filenameURDF,...
             'GazeboModel',false);
     end
-    % model WITH exo, with C7 joints (complete) REVOLUTE
+    % model WITH exo in torqueLevelAnalysis, with C7 joints (complete) REVOLUTE
     if opts.EXO && opts.EXO_torqueLevelAnalysis
         bucket.filenameURDF = fullfile(bucket.pathToSubject, sprintf('XSensURDF_subj%02d_48dof_EXO.urdf', subjectID));
         if ~exist(bucket.filenameURDF, 'file')
@@ -130,13 +130,13 @@ if opts.noC7joints
         end
     end
 else
-    % model NO exo, with C7 joints (complete) UNLOCKED
+    % model NO exo or EXO in forceLevelAnalysis, with C7 joints (complete) UNLOCKED
     bucket.filenameOSIM = fullfile(bucket.pathToSubject, sprintf('XSensOSIM_subj%02d_48dof.osim', subjectID));
     if ~exist(bucket.filenameOSIM, 'file')
         bucket.OSIMmodel = createXsensLikeOSIMmodel(subjectParamsFromData, ...
             bucket.filenameOSIM);
     end
-    % model WITH exo, with C7 joints (complete) UNLOCKED
+    % model WITH exo in torqueLevelAnalysis, with C7 joints (complete) UNLOCKED
     if opts.EXO && opts.EXO_torqueLevelAnalysis
         bucket.filenameOSIM = fullfile(bucket.pathToSubject, sprintf('XSensOSIM_subj%02d_48dof_EXO.osim', subjectID));
         if ~exist(bucket.filenameOSIM, 'file')
@@ -355,8 +355,38 @@ sensorsToBeRemoved = [];
 % % bucket.temp.id = 'LeftFoot';
 % % sensorsToBeRemoved = [sensorsToBeRemoved; bucket.temp];
 
-%% Angular velocity of the currentBase
-% Code to handle the info of the angular velocity of the base.
+%% Compute the transformation of the base w.r.t. the global suit frame G
+disp('-------------------------------------------------------------------');
+disp(strcat('[Start] Computing the <',currentBase,'> transform w.r.t. the global frame G...'));
+%--------Computation of the suit base orientation and position w.r.t. G
+for suitLinksIdx = 1 : size(suit.links,1)
+    if suit.links{suitLinksIdx, 1}.label == currentBase
+        basePos_tot  = suit.links{suitLinksIdx, 1}.meas.position;
+        baseOrientation_tot = suit.links{suitLinksIdx, 1}.meas.orientation;
+        break
+    end
+    break
+end
+
+for blockIdx = 1 : block.nrOfBlocks
+    tmp.cutRange{blockIdx} = (tmp.blockRange(blockIdx).first : tmp.blockRange(blockIdx).last);
+    bucket.basePosition(blockIdx).basePos_wrtG  = basePos_tot(:,tmp.cutRange{blockIdx});
+    bucket.orientation(blockIdx).baseOrientation = baseOrientation_tot(:,tmp.cutRange{blockIdx});
+end
+clearvars basePos_tot baseOrientation_tot;
+
+for blockIdx = 1 : block.nrOfBlocks
+    G_T_base(blockIdx).block = block.labels(blockIdx);
+    G_T_base(blockIdx).G_T_b = computeTransformBaseToGlobalFrame(human_kinDynComp, ...
+        synchroKin(blockIdx),...
+        bucket.orientation(blockIdx).baseOrientation, ...
+        bucket.basePosition(blockIdx).basePos_wrtG);
+end
+disp(strcat('[End] Computing the <',currentBase,'> transform w.r.t. the global frame G'));
+
+
+%% Velocity of the currentBase
+% Code to handle the info of the velocity of the base.
 % This value is mandatorily required in the floating-base formalism.
 % The new MVNX2018 does not provide the sensorAngularVelocity anymore.
 
@@ -366,20 +396,21 @@ sensorsToBeRemoved = [];
 endEffectorFrame = 'LeftFoot';
 
 disp('-------------------------------------------------------------------');
-disp(strcat('[Start] Computing the <',currentBase,'> angular velocity...'));
+disp(strcat('[Start] Computing the <',currentBase,'> velocity...'));
 if ~exist(fullfile(bucket.pathToProcessedData,'baseAngVelocity.mat'), 'file')
     for blockIdx = 1 : block.nrOfBlocks
-        baseAngVel(blockIdx).block = block.labels(blockIdx);
-        [baseAngVel(blockIdx).baseAngVelocity, baseKinDynModel] = computeBaseAngularVelocity( human_kinDynComp, ...
+        baseVel(blockIdx).block = block.labels(blockIdx);
+        [baseVel(blockIdx).baseLinVelocity, baseVel(blockIdx).baseAngVelocity, baseKinDynModel] = computeBaseVelocity(human_kinDynComp, ...
             currentBase, ...
             synchroKin(blockIdx),...
+            G_T_base(blockIdx), ...
             endEffectorFrame);
     end
-    save(fullfile(bucket.pathToProcessedData,'baseAngVelocity.mat'),'baseAngVel');
+    save(fullfile(bucket.pathToProcessedData,'baseVelocity.mat'),'baseVel');
 else
-    load(fullfile(bucket.pathToProcessedData,'baseAngVelocity.mat'));
+    load(fullfile(bucket.pathToProcessedData,'baseVelocity.mat'));
 end
-disp(strcat('[End] Computing the <',currentBase,'> angular velocity...'));
+disp(strcat('[End] Computing the <',currentBase,'> velocity'));
 
 
 %% --------------------------- ID comparisons -----------------------------
@@ -403,9 +434,9 @@ if ~exist(fullfile(bucket.pathToProcessedData,'estimation.mat'), 'file')
                 synchroKin(blockIdx),...
                 data(blockIdx).y, ...
                 priors, ...
-                baseAngVel(blockIdx).baseAngVelocity, ...
+                baseVel(blockIdx).baseAngVelocity, ...
                 'SENSORS_TO_REMOVE', sensorsToBeRemoved);
-             disp(strcat('[End] Complete MAP computation for Block ',num2str(blockIdx)));
+            disp(strcat('[End] Complete MAP computation for Block ',num2str(blockIdx)));
             % TODO: variables extraction
             % Sigma_tau extraction from Sigma d --> since sigma d is very big, it
             % cannot be saved! therefore once computed it is necessary to extract data
@@ -419,9 +450,9 @@ if ~exist(fullfile(bucket.pathToProcessedData,'estimation.mat'), 'file')
                 synchroKin(blockIdx),...
                 data(blockIdx).y, ...
                 priors, ...
-                baseAngVel(blockIdx).baseAngVelocity, ...
+                baseVel(blockIdx).baseAngVelocity, ...
                 'SENSORS_TO_REMOVE', sensorsToBeRemoved);
-             disp(strcat('[End] mu_dgiveny MAP computation for Block ',num2str(blockIdx)));
+            disp(strcat('[End] mu_dgiveny MAP computation for Block ',num2str(blockIdx)));
         end
     end
     save(fullfile(bucket.pathToProcessedData,'estimation.mat'),'estimation');
@@ -476,7 +507,7 @@ if ~exist(fullfile(bucket.pathToProcessedData,'y_sim.mat'), 'file')
         [y_sim(blockIdx).y_sim] = sim_y_floating(berdy, ...
             synchroKin(blockIdx),...
             traversal, ...
-            baseAngVel(blockIdx).baseAngVelocity, ...
+            baseVel(blockIdx).baseAngVelocity, ...
             estimation(blockIdx).mu_dgiveny);
         disp(strcat('[End] Simulated y computation for Block ',num2str(blockIdx)));
     end
@@ -564,7 +595,9 @@ if opts.EXO
             implFeetConstraint(blockIdx).block = block.labels(blockIdx);
             implFeetConstraint(blockIdx).term  = computeImplicitFeetConstraintForm(human_kinDynComp, ...
                 currentBase, ...
-                synchroKin(blockIdx));
+                G_T_base(blockIdx), ...
+                synchroKin(blockIdx), ...
+                baseVel(blockIdx));
         end
         save(fullfile(bucket.pathToProcessedData,'implicitFeetContraint.mat'),'implFeetConstraint');
     else
