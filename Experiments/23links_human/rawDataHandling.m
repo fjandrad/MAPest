@@ -43,7 +43,10 @@ for i = 1 : size(suit.sensors{1, 1}.meas.sensorOrientation,2) % sens1 since it i
         end
     end
 end
-
+% % Forcing tmp tappullo 
+tmp.blockRange(1).last  = 7353;
+tmp.blockRange(2).first = 7354;
+tmp.blockRange(2).last  = 15507;
 %% Timestamps struct
 for blockIdx = 1 : block.nrOfBlocks
     % ---Labels
