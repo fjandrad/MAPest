@@ -30,7 +30,7 @@ subjectID = 1;
 taskID = 1;
 
 % EXO option
-opts.EXO = true;
+opts.EXO = false;
 if opts.EXO
     opts.EXO_torqueLevelAnalysis = true;
     opts.EXO_forceLevelAnalysis  = false;

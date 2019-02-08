@@ -15,6 +15,11 @@ masterFile = load(fullfile(bucket.pathToRawData,sprintf(('S%02d_%02d.mat'),subje
 % Option for computing the estimated Sigma
 opts.Sigma_dgiveny = false;
 
+% Option for computing ID comparisons
+opts.iDynID_kinDynClass = true;
+opts.iDynID_estimClass  = false;
+opts.OsimID             = false;
+
 % Define the template to be used
 if opts.noC7joints
     addpath(genpath('templatesNoC7'));
@@ -22,7 +27,7 @@ if opts.noC7joints
     disp('[Warning]: The following analysis will be done with C7joints locked/fixed in the models!');
 else
     addpath(genpath('templates'));
-    rmpath('templatesNoC7'); %if exists
+    %rmpath('templatesNoC7'); %if exists
 end
 
 %% ---------------------UNA TANTUM PROCEDURE-------------------------------
@@ -625,7 +630,9 @@ if opts.EXO
     end
 end
 
-%%  Final plots
+%% Final plots
+opts.finalPlot = false;
+
 if opts.finalPlot
     finalPlots;
 end

@@ -50,8 +50,13 @@ for i = 1 : suit.properties.nrOfLinks
     suit.links{i}.label = mvnxData.segments.segment(i).ATTRIBUTE.label;
     suit.links{i}.meas = struct;
     suit.links{i}.meas.orientation         = zeros(4, suit.properties.lenData);
+<<<<<<< HEAD
     suit.links{i}.meas.position           = zeros(3, suit.properties.lenData);
     suit.links{i}.meas.velocity           = zeros(3, suit.properties.lenData);
+=======
+    suit.links{i}.meas.position           = zeros(3, suit.properties.lenData); %not used in JSI analysis, not in the.csv
+    suit.links{i}.meas.velocity           = zeros(3, suit.properties.lenData); %not used in JSI analysis, not in the.csv
+>>>>>>> d35d83ce05a8eb33f7a05ea6dfc39f76bfed19f8
     suit.links{i}.meas.acceleration        = zeros(3, suit.properties.lenData);
     suit.links{i}.meas.angularVelocity     = zeros(3, suit.properties.lenData);
     suit.links{i}.meas.angularAcceleration = zeros(3, suit.properties.lenData);
@@ -200,16 +205,16 @@ tmp.link.angularAcceleration.data = zeros(nrOfFrames,3*(suit.properties.nrOfLink
 for i = 1 : 3*(suit.properties.nrOfLinks)
     tmp.link.position.orderedLabel{i,1} = mvnxDataFromCSV.orderedLabel{i+(tmp.lastIdxPos - 3*(suit.properties.nrOfLinks)), 1};
     tmp.link.position.data(:,i) = mvnxDataFromCSV.data(:,i+(tmp.lastIdxPos - 3*(suit.properties.nrOfLinks)));
-    
+
     tmp.link.velocity.orderedLabel{i,1} = mvnxDataFromCSV.orderedLabel{i+(tmp.lastIdxVel - 3*(suit.properties.nrOfLinks)), 1};
     tmp.link.velocity.data(:,i) = mvnxDataFromCSV.data(:,i+(tmp.lastIdxVel - 3*(suit.properties.nrOfLinks)));
-    
+
     tmp.link.acceleration.orderedLabel{i,1} = mvnxDataFromCSV.orderedLabel{i+(tmp.lastIdxAcc - 3*(suit.properties.nrOfLinks)), 1};
     tmp.link.acceleration.data(:,i) = mvnxDataFromCSV.data(:,i+(tmp.lastIdxAcc - 3*(suit.properties.nrOfLinks)));
-    
+
     tmp.link.angularVelocity.orderedLabel{i,1} = mvnxDataFromCSV.orderedLabel{i+(tmp.lastIdxAngVel - 3*(suit.properties.nrOfLinks)), 1};
     tmp.link.angularVelocity.data(:,i) = mvnxDataFromCSV.data(:,i+(tmp.lastIdxAngVel - 3*(suit.properties.nrOfLinks)));
-    
+
     tmp.link.angularAcceleration.orderedLabel{i,1} = mvnxDataFromCSV.orderedLabel{i+(tmp.lastIdxAngAcc - 3*(suit.properties.nrOfLinks)), 1};
     tmp.link.angularAcceleration.data(:,i) = mvnxDataFromCSV.data(:,i+(tmp.lastIdxAngAcc - 3*(suit.properties.nrOfLinks)));
 end
@@ -273,7 +278,7 @@ for suitLinkIdx = 1 : size(suit.links,1)
         end
     end
     suit.links{suitLinkIdx}.meas.orientation = tmp.link.orientation.data(:,tmpIndex:tmpIndex+3)';
-    
+
     % !!!!!!!!!!!!!!!! PART TO BE VERIFIED !!!!!!!!!!!!!!!!!!!
     %     currentOrientation = tmp.link.orientation.data(:,tmpIndex:tmpIndex+3)';
     %     %----------------------------------------------------------------------
@@ -343,3 +348,4 @@ end
 
 %% Cleaning-up workspace
 clearvars a b suitLinkIdx suitSensorIdx tmpIndex i j k formatSpec frameIdx;
+gi s
