@@ -259,7 +259,7 @@ human_kinDynComp.loadRobotModel(humanModel);
 
 humanSensors = humanModelLoader.sensors();
 humanSensors.removeAllSensorsOfType(iDynTree.GYROSCOPE_SENSOR);
-humanSensors.removeAllSensorsOfType(iDynTree.ACCELEROMETER_SENSOR);
+% humanSensors.removeAllSensorsOfType(iDynTree.ACCELEROMETER_SENSOR);
 bucket.base = 'Pelvis'; % floating base
 
 %% Initialize berdy
@@ -623,10 +623,8 @@ if opts.EXO
     if opts.EXO_forceLevelAnalysis
         disp('-------------------------------------------------------------------');
         disp('[Start] EXO Force level analysis');
-
-        % to be done
-
-        disp('[End] EXO Torque level analysis');
+        EXO_forceLevelAnalysis;
+        disp('[End] EXO Force level analysis');
     end
 end
 
