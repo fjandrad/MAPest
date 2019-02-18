@@ -1,11 +1,11 @@
-function [tau] = iDynTreeID_kinDyn_floating(kinDynComputation, currentBase, baseOrientation, basePosition, baseVel, baseAcc, jointsQty, fext)
+function [tau,baseWrench] = iDynTreeID_kinDyn_floating(kinDynComputation, currentBase, baseOrientation, basePosition, baseVel, baseAcc, jointsQty, fext, varargin)
 %IDYNTREEID_KINDYN_FLOATING computes the iDynTree Inverse Dynamics (ID) as
 % implemented in iDynTree C++ method inverseDynamics() of kinDynComputations
 % class.
 %
 % Input:
 % - kynDynComputation : kinDynComputation object initialized by berdy
-% - currentBase     : current floating base
+% - currentBase       : current floating base
 % - baseOrientation   : orientation of the base
 % - basePosition      : position of the base w.r.t. the inertial frame
 % - baseVel           : 6D velocity of the base (linear vel + angular vel)
@@ -13,14 +13,20 @@ function [tau] = iDynTreeID_kinDyn_floating(kinDynComputation, currentBase, base
 % - baseAcc           : 6D acceleration of the base (linear acc + angular acc)
 %                       expressed w.r.t. the inertial frame, without gravity
 % - jointsQty         : q,dq (for the kinDynComputation.setRobotState) + ddq
-% - fext            : 6D wrench expressed w.r.t. the link they are applied.
-%
+% - fext              : 6D wrench expressed w.r.t. the link they are applied.
+% - varargin          : Variable input (mainly to disable the update of external
+% forces)
 % Output:
 % - tau               : torque
 
-
+useForces=true;
+if length(varargin)==1
+    if islogical(varargin{1})
+        useForces=varargin{1};
+    end    
+end
 % Check if the model was correctly loaded by printing the model
-kinDynComputation.model().toString() % print model
+% kinDynComputation.model().toString() % print model
 
 % Initialize state
 q = iDynTree.VectorDynSize();
@@ -50,6 +56,7 @@ tau_iDynTree = iDynTree.FreeFloatingGeneralizedTorques(kinDynComputation.model);
 tau_iDynTree_joint = iDynTree.JointDOFsDoubleArray(kinDynComputation.model);
 tau_iDynTree_joint.zero();
 tau = zeros(size(jointsQty.q));
+baseWrench = zeros(6,length(jointsQty.q));
 
 % Define parameters for setRobotState
 G_T_baseRot = iDynTree.Rotation();
@@ -78,6 +85,7 @@ for i = 1 : samples
     
     ddq.fromMatlab(jointsQty.ddq(:,i));
     
+    if useForces
     % Right Foot transforms: G_f_rfoot = G_X_base * base_X_rfoot * rfoot_f
     base_T_rfoot = kinDynComputation.getRelativeTransform(baseIndex,rFootIndex);
     base_X_rfoot = base_T_rfoot.asAdjointTransform.toMatlab();
@@ -89,12 +97,13 @@ for i = 1 : samples
     base_X_lfoot = base_T_lfoot.asAdjointTransform.toMatlab();
     lFootWrench = fext_iDynTree(lFootIndex);
     lFootWrench.fromMatlab(G_T_base.asAdjointTransform.toMatlab() * base_X_lfoot * fext.Left_HF(:,i));
-    
+    end
     % Inverse dynamics computation
     kinDynComputation.inverseDynamics(baseAcc_iDynTree,ddq,fext_iDynTree,tau_iDynTree);
     
     % Consider only the joint part of the computation
     tau_iDynTree_joint = tau_iDynTree.jointTorques();
     tau(:,i) = tau_iDynTree_joint.toMatlab;
+    baseWrench(:,i)=tau_iDynTree.baseWrench.toMatlab();
 end
 end
