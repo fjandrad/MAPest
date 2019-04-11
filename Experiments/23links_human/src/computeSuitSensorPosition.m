@@ -18,8 +18,9 @@ for sIdx = 1: suit.properties.nrOfSensors
         S2 = skewMatrix(link.meas.angularVelocity(:,i));
 
         G_R_L_mat = quat2Mat(link.meas.orientation(:,i));
-        A(3*i-2:3*i,:) = (S1 + S2*S2) * G_R_L_mat;
-
+        %         A(3*i-2:3*i,:) = (S1 + S2*S2) * G_R_L_mat; %TODO: shouldnt it pre-multiply instead of pos-multiply?
+        A(3*i-2:3*i,:) =  G_R_L_mat * (S1 + S2*S2);
+        
         G_acc_S = sensor.meas.sensorFreeAcceleration(:,i);
         G_acc_L = link.meas.acceleration(:,i);
 
@@ -30,7 +31,7 @@ for sIdx = 1: suit.properties.nrOfSensors
         L_RPY_S(i,:) = mat2RPY(S_R_L'); %RPY in rad
     end
     % matrix system
-    B_pos_SL = A\b;
+    B_pos_SL = A\b;% TODO: B? body? base? position of sensor wrt to what, from function description it seems the position of the sensor with respect to the link origin L^p_s
     sensor.origin = B_pos_SL;
     suit.sensors{sIdx}.position = sensor.origin;
     suit.sensors{sIdx}.RPY = mean(L_RPY_S);

@@ -399,10 +399,14 @@ disp(strcat('[End] Computing the <',currentBase,'> transform w.r.t. the global f
 % be zero (e.g., a frame associated to a link that is in fixed contact with
 % the ground).
 endEffectorFrame = 'LeftFoot';
-
+% optionally use both feet to constrain the base velocity
+if opts.useBothFeetAsConstraints
+    endEffectorFrame = {'LeftFoot','RightFoot'};
+end
+%
 disp('-------------------------------------------------------------------');
 disp(strcat('[Start] Computing the <',currentBase,'> velocity...'));
-if ~exist(fullfile(bucket.pathToProcessedData,'baseAngVelocity.mat'), 'file')
+if ~exist(fullfile(bucket.pathToProcessedData,'baseVelocity.mat'), 'file')
     for blockIdx = 1 : block.nrOfBlocks
         baseVel(blockIdx).block = block.labels(blockIdx);
         [baseVel(blockIdx).baseLinVelocity, baseVel(blockIdx).baseAngVelocity, baseKinDynModel] = computeBaseVelocity(human_kinDynComp, ...

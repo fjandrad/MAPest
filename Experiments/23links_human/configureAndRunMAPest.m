@@ -43,12 +43,16 @@ opts.noC7joints = false;
 
 
 % ID comparisons for MAP benchmarking
-opts.MAPbenchmarking = false;
-if opts.MAPbenchmarking
-    opts.iDynID_kinDynClass = false;
-    opts.iDynID_estimClass  = false;
+opts.iDynID_kinDynClass = true;
+opts.iDynID_estimClass  = false;
 %     opts.OsimID             = false;
+if opts.iDynID_kinDynClass||opts.iDynID_estimClass
+    opts.MAPbenchmarking = true;
+    
 end
+
+% Use both feet for constraint?
+opts.useBothFeetAsConstraints=true;
 
 % Final plots
 opts.finalPlot = false;

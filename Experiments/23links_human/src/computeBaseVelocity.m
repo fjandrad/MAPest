@@ -34,7 +34,7 @@ for i = 1 : samples
     kinDynComputation.setRobotState(G_T_base.G_T_b{i,1},q,base_vel,dq,gravity);
     fullJacobian = getFloatingContactJacobian(kinDynComputation,endEffectorFrame)
     % Compute I_v_B
-    G_v_B = - inv(fullJacobian(:,1:6))* fullJacobian(:,7:end)*state.dq(:,i);
+    G_v_B = - pinvDamped(fullJacobian(:,1:6),1e-6)* fullJacobian(:,7:end)*state.dq(:,i);
     baseLinVelocity(:,i) = G_v_B(1:3,:);
     baseAngVelocity(:,i) = G_v_B(4:6,:);
 end

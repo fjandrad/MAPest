@@ -17,6 +17,6 @@ for sample=1:length(tau_alpha)
     %temporary fix until math is revised
     augmentedAlpha=[baseWrench_alpha(:,sample);tau_alpha(:,sample)];
     
-    projectedDynamics(:,sample) = pinv(sNU * selectorMatrix, 1e-6) * sNU*augmentedAlpha;
+    projectedDynamics(:,sample) = pinvDamped(sNU * selectorMatrix, 1e-6) * sNU*augmentedAlpha;
     % end of temporary code
 end
