@@ -19,12 +19,18 @@ bucket = struct;
 bucket.datasetRoot = fullfile(pwd, 'dataFloatingIWear');
 
 % Subject and task to be processed
-subjectID = 3;
-taskID = 2;
+subjectID = 5;
+taskID = 3;
 
+%   Options of task
+bucket.useSkinOnLeft=true;
+bucket.useSkinOnRight=false;
+bucket.pathToSkinFunctions='/media/shared/dev/element_ftSk_Shoes/SkinInsoles/Matlab/';
+bucket.pathToProcessSkinData='/media/shared/dev/element_ftSk_Shoes/SkinInsoles/Matlab/ProcessData/utils';
+addpath(genpath('skinAsForce'));
 %% Options
-opts.analysis_48dofURDF = true;
-opts.analysis_66dofURDF = false;
+opts.analysis_48dofURDF = false;
+opts.analysis_66dofURDF = true;
 
 % Option for computing the estimated Sigma (default = FALSE)
 opts.Sigma_dgiveny = false;
