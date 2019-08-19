@@ -19,11 +19,11 @@ bucket = struct;
 bucket.datasetRoot = fullfile(pwd, 'dataFloatingIWear');
 
 % Subject and task to be processed
-subjectID = 5;
+subjectID = 8;
 taskID = 3;
 
 %   Options of task
-bucket.useSkinOnLeft=true;
+bucket.useSkinOnLeft=false;
 bucket.useSkinOnRight=false;
 bucket.pathToSkinFunctions='/media/shared/dev/element_ftSk_Shoes/SkinInsoles/Matlab/';
 bucket.pathToProcessSkinData='/media/shared/dev/element_ftSk_Shoes/SkinInsoles/Matlab/ProcessData/utils';

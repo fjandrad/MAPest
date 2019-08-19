@@ -86,7 +86,19 @@ extractIKfromHumanStateProvider;
 
 % Frame rate consistency check
 if suit.estimatedFrameRate ~= IKdata.estimatedFrameRate
-    error('The frame rates of suit and IKdata are different! Check it! ...')
+    if suit.estimatedFrameRate<IKdata.estimatedFrameRate
+        if IKdata.timestamp(1)<=suit.timestamp(1)<=IKdata.timestamp(2)
+            IKdata=syncrhonizeAndresample(IKdata,suit.timestamp,IKdata.timestamp);
+            IKdata.nrOfFrames=length(IKdata.timestamp);
+            IKdata.estimatedFrameRate=suit.estimatedFrameRate;
+        end
+        
+    else
+        
+        
+    end
+%     error('The frame rates of suit and IKdata are different! Check it! ...')
+    disp('The frame rates of suit and IKdata are different! Check it! ...')
 end
 
 % Number of samples/timestamps consistency check
@@ -146,7 +158,7 @@ human_kinDynComp.loadRobotModel(humanModel);
 
 humanSensors = humanModelLoader.sensors();
 humanSensors.removeAllSensorsOfType(iDynTree.GYROSCOPE_SENSOR);
-% humanSensors.removeAllSensorsOfType(iDynTree.ACCELEROMETER_SENSOR);
+ humanSensors.removeAllSensorsOfType(iDynTree.ACCELEROMETER_SENSOR);
 bucket.base = 'Pelvis'; % floating base
 
 %% Initialize berdy

@@ -49,10 +49,13 @@ if ~exist(fullfile(bucket.pathToProcessedData,[shoe,'_skin.mat']), 'file')
     tauySkin=Phi_tau_y* k_left;
     skinFT=[zeros(size(forceSkin)),zeros(size(forceSkin)),forceSkin,tauxSkin,tauySkin,zeros(size(forceSkin))];
     save(fullfile(bucket.pathToProcessedData,[shoe,'_skin.mat']),'skinFT');
+    save(fullfile(bucket.pathToProcessedData,[shoe,'_skinTime.mat']),'skin_timestamp');
 else
-    skinFT=  load(fullfile(bucket.pathToProcessedData,[shoe,'_skin.mat']));
+    skinFT_struct=  load(fullfile(bucket.pathToProcessedData,[shoe,'_skin.mat']));
+    skin_timestamp_struct = load(fullfile(bucket.pathToProcessedData,[shoe,'_skinTime.mat']));
     disp(['[Skin FT calculation] Read file ',shoe,'_skin.mat']);
-    
+    skin_timestamp=skin_timestamp_struct.skin_timestamp;
+    skinFT=skinFT_struct.skinFT;
 end
 %%  Synchronize data
 referenceTimeStamp=wearData.timestamp;
