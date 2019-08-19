@@ -43,6 +43,7 @@ function [mu_dgiveny, Sigma_dgiveny] = MAPcomputation_floating(berdy, traversal,
 % sensor and the related block variance from the Sigmay.
 % -------------------------------------------------------------------------
 
+%% Argument options
 options = struct(   ...
     'SENSORS_TO_REMOVE', []...
     );
@@ -69,7 +70,7 @@ for pair = reshape(varargin,2,[]) % pair is {propName;propValue}
     end
 end
 
-%%
+%% Sensor removal options
 rangeOfRemovedSensors = [];
 for i = 1 : size(options.SENSORS_TO_REMOVE)
     ithSensor = options.SENSORS_TO_REMOVE(i);
@@ -80,7 +81,7 @@ end
 y(rangeOfRemovedSensors,:) = [];
 priors.Sigmay(rangeOfRemovedSensors, :) = [];
 priors.Sigmay(:, rangeOfRemovedSensors) = [];
-%%
+%% Set variables
 % % Set angularVector
 % angVect = [0 0 0];
 % omega  = iDynTree.Vector3();
@@ -110,7 +111,7 @@ mu_dgiveny    = zeros(nrOfDynVariables, samples);
 % Sigma_dgiveny = sparse(nrOfDynVariables, nrOfDynVariables, samples);
 Sigma_dgiveny =  cell(samples,1);
 
-% MAP Computation
+%% MAP Computation
 q  = iDynTree.JointPosDoubleArray(berdy.model());
 dq = iDynTree.JointDOFsDoubleArray(berdy.model());
 currentBase = berdy.model().getLinkName(traversal.getBaseLink().getIndex());
@@ -137,6 +138,26 @@ for i = 1 : samples
     b_Y = berdyMatrices.b_Y.toMatlab();
     
     b_Y(rangeOfRemovedSensors) = [];
+
+    % Check on the [Y; D] matrix rank
+    if (i==1)
+        bigMatrix = full([Y; D]);
+        rowsOfbigMatrix = size(bigMatrix,1);
+        columnsOfbigMatrix = size(bigMatrix,2);
+        % svd
+        % [U_bigMatrix,S_bigMatrix,V_bigMatrix] = svd(bigMatrix);
+        svd_bigMatrix = svd(bigMatrix);
+        rank_bigMatrix = nnz(svd_bigMatrix);
+        if (rowsOfbigMatrix > columnsOfbigMatrix)
+            if rank_bigMatrix == nrOfDynVariables
+                disp('[Info] [Y; D] is a full rank matrix with rows > columns');
+            else
+                disp('[Info] [Y; D] is a matrix with rows > columns');
+            end
+        else
+            error('[Info] [Y; D] is a matrix with rows < columns! Check the matrix!!');
+        end
+    end
     
     SigmaBarD_inv   = D' * SigmaD_inv * D + Sigmad_inv;
     
@@ -169,8 +190,9 @@ end
 end
 
 function [x] = CholSolve(A, b, P)
-% control if A is symmetric
-if (issymmetric(round(A,3)) == 1)
+if ~issymmetric(A)
+    A = (A+A')/2;
+end
     C              = P'*A*P;  % P is given as input
     [R]            = chol(C); % R is such that R'*R = P'*C*P
     
@@ -178,7 +200,4 @@ if (issymmetric(round(A,3)) == 1)
     z_forward      = R'\w_forward;
     y_forward      = R\z_forward;
     x              = P'\y_forward;
-else
-    error('matrix A is not symmetric')
-end
 end
