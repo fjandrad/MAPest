@@ -20,7 +20,7 @@ bucket.pathToPlots = fullfile(bucket.pathToTask,'plots');
 if ~exist(bucket.pathToPlots)
     mkdir (bucket.pathToPlots)
 end
-saveON = false;
+saveON = true;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % -----------------------------------------------------------------------%

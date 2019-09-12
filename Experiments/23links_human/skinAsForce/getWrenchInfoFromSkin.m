@@ -20,7 +20,7 @@ if ~exist(fullfile(bucket.pathToProcessedData,[shoe,'_skin.mat']), 'file')
     cd(currentPath)
     [coeffFileName, path] = uigetfile('*.mat',['Select ',shoe ,' coefficients file'] );
     skinLeftCoefficientVar=[path,'/',coeffFileName];
-    %skinLeftCoefficientVar='skinAsForce/k_left_insole.mat';
+    %skinLeftCoefficientVar='skinAsForce/k_insole.mat';
     load(skinLeftCoefficientVar);
     num_taxels=280;
     order_pol=3;
@@ -42,11 +42,11 @@ if ~exist(fullfile(bucket.pathToProcessedData,[shoe,'_skin.mat']), 'file')
     Phi_tau_y = Phi_tau_y .* A;
     
     %% compute forces pressure and torques
-    presssureSkin= Phi_left * k_left;
+    presssureSkin= Phi_left * k;
     
-    forceSkin=Phi_left_force* k_left;
-    tauxSkin=Phi_tau_x* k_left;
-    tauySkin=Phi_tau_y* k_left;
+    forceSkin=Phi_left_force* k;
+    tauxSkin=Phi_tau_x* k;
+    tauySkin=Phi_tau_y* k;
     skinFT=[zeros(size(forceSkin)),zeros(size(forceSkin)),forceSkin,tauxSkin,tauySkin,zeros(size(forceSkin))];
     save(fullfile(bucket.pathToProcessedData,[shoe,'_skin.mat']),'skinFT');
     save(fullfile(bucket.pathToProcessedData,[shoe,'_skinTime.mat']),'skin_timestamp');

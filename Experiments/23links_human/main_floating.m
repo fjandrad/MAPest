@@ -262,6 +262,8 @@ data = dataPackaging(humanModel, ...
     synchroKin.ddq, ...
     bucket.linkInShoes, ...
     priors);
+% change manually covariance for right ft info
+data(153).var=priors.foot_fext_right;
 % y vector as input for MAP
 [y, Sigmay] = berdyMeasurementsWrapping(berdy, data);
 disp('[End] Wrapping measurements');
@@ -343,7 +345,7 @@ sensorsToBeRemoved = [];
 
 %% MAP computation
 disp('-------------------------------------------------------------------');
-if ~exist(fullfile(bucket.pathToProcessedData,'estimation.mat'), 'file')
+% if ~exist(fullfile(bucket.pathToProcessedData,'estimation.mat'), 'file')
     priors.Sigmay = Sigmay;
     if opts.Sigma_dgiveny
         disp('[Start] Complete MAP computation...');
@@ -372,14 +374,14 @@ if ~exist(fullfile(bucket.pathToProcessedData,'estimation.mat'), 'file')
         disp('[End] mu_dgiveny MAP computation');
     end
     save(fullfile(bucket.pathToProcessedData,'estimation.mat'),'estimation');
-else
-    disp('MAP computation already saved!');
-    load(fullfile(bucket.pathToProcessedData,'estimation.mat'));
-end
+% else
+%     disp('MAP computation already saved!');
+%     load(fullfile(bucket.pathToProcessedData,'estimation.mat'));
+% end
 
 %% Variables extraction from MAP estimation
 disp('-------------------------------------------------------------------');
-if ~exist(fullfile(bucket.pathToProcessedData,'estimatedVariables.mat'), 'file')
+% if ~exist(fullfile(bucket.pathToProcessedData,'estimatedVariables.mat'), 'file')
     % 6D acceleration (no via Berdy)
     disp('[Start] Acceleration MAP extraction...');
     estimatedVariables.Acc.label  = dVectorOrder;
@@ -421,10 +423,10 @@ if ~exist(fullfile(bucket.pathToProcessedData,'estimatedVariables.mat'), 'file')
     
     % save extracted viariables
     save(fullfile(bucket.pathToProcessedData,'estimatedVariables.mat'),'estimatedVariables');
-else
-    disp('Torque, joint acc and ext force MAP extraction already saved!');
-    load(fullfile(bucket.pathToProcessedData,'estimatedVariables.mat'));
-end
+% else
+%     disp('Torque, joint acc and ext force MAP extraction already saved!');
+%     load(fullfile(bucket.pathToProcessedData,'estimatedVariables.mat'));
+% end
 
 %% Simulated y
 % This section is useful to compare the measurements in the y vector and
@@ -432,7 +434,7 @@ end
 % the MAP (i.e., mu_dgiveny) with the measurements in the y vector but you
 % have to pass through the y_sim and only later to compare y and y_sim.
 disp('-------------------------------------------------------------------');
-if ~exist(fullfile(bucket.pathToProcessedData,'y_sim.mat'), 'file')
+% if ~exist(fullfile(bucket.pathToProcessedData,'y_sim.mat'), 'file')
     disp('[Start] Simulated y computation...');
     [y_sim] = sim_y_floating(berdy, ...
         synchroKin.state, ...
@@ -441,19 +443,19 @@ if ~exist(fullfile(bucket.pathToProcessedData,'y_sim.mat'), 'file')
         estimation.mu_dgiveny);
     disp('[End] Simulated y computation');
     save(fullfile(bucket.pathToProcessedData,'y_sim.mat'),'y_sim');
-else
-    disp('Simulated y computation already saved!');
-    load(fullfile(bucket.pathToProcessedData,'y_sim.mat'));
-end
+% else
+%     disp('Simulated y computation already saved!');
+%     load(fullfile(bucket.pathToProcessedData,'y_sim.mat'));
+% end
 
 %% Variables extraction from y_sim
 disp('-------------------------------------------------------------------');
-if ~exist(fullfile(bucket.pathToProcessedData,'y_sim_fext.mat'), 'file')
+% if ~exist(fullfile(bucket.pathToProcessedData,'y_sim_fext.mat'), 'file')
     disp('[Start] Simulated y forces extraction...');
     extractFext_from_y_sim;
     disp('[End] Simulated y forces extraction');
-else
-    disp('Simulated y forces extraction already saved!');
-    load(fullfile(bucket.pathToProcessedData,'y_sim_fext.mat'));
-end
+% else
+%     disp('Simulated y forces extraction already saved!');
+%     load(fullfile(bucket.pathToProcessedData,'y_sim_fext.mat'));
+% end
 

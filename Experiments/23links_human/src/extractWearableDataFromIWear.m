@@ -193,7 +193,7 @@ end
 % right shoe
 if bucket.useSkinOnRight
     shoe = 'Right';    
-    getWrenchInfoFromSkin;
+    getWrenchInfoFromSkin2;
     wearData.ftShoes.Right=skinFTData;
 else
     tmp.rightFtShoeIndx = find(strcmp(tmp.file{1, 1}, 'FTShoeRightFTSensors'));
